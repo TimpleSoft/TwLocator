@@ -1,5 +1,7 @@
 package io.keepcoding.twlocator.activities;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -97,7 +99,7 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
 
             @Override
             public void gotUserTimeline(ResponseList<Status> statuses) {
-                for (Status s: statuses) {
+                for (Status s : statuses) {
                     Log.d("Twitter", "tweet: " + s.getText());
                 }
             }
@@ -584,8 +586,24 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
     @Override
     public void twitterConnectionFinished() {
         Toast.makeText(this, getString(R.string.twiiter_auth_ok), Toast.LENGTH_SHORT).show();
+        Log.d(getString(R.string.app_name), getString(R.string.twiiter_auth_ok));
+    }
 
+    /**
+     * Called when the OAuthRequestTokenTask finishes (user has authorized the
+     * request token). The callback URL will be intercepted here.
+     */
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        final Uri uri = intent.getData();
+        if (uri != null && uri.toString().indexOf(TwitterHelper.TwitterConsts.CALLBACK_URL) != -1) {
+            Log.d(getString(R.string.app_name), "Retrieving Access Token. Callback received : " + uri);
+            twitterTask = new ConnectTwitterTask(this, uri);
+            twitterTask.setListener(this);
 
+            twitterTask.execute();
+        }
     }
 
 }

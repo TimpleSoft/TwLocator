@@ -25,6 +25,11 @@ public class ConnectTwitterTask extends AsyncTask<Void, Void, Void> {
             }
         }
 	}
+
+    public ConnectTwitterTask(Activity context, Uri uri) {
+        this.context = context;
+        this.uri = uri;
+    }
 	
 	@Override
 	protected void onPreExecute() {

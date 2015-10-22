@@ -3,6 +3,7 @@
 package io.keepcoding.twlocator.util.twitter;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,6 +11,7 @@ import android.content.SharedPreferences.Editor;
 import android.net.Uri;
 import android.util.Log;
 
+import io.keepcoding.twlocator.R;
 import twitter4j.AsyncTwitter;
 import twitter4j.AsyncTwitterFactory;
 import twitter4j.Twitter;
@@ -76,6 +78,7 @@ public class TwitterHelper {
 		try {
 			requestToken = twitter.getOAuthRequestToken(TwitterConsts.CALLBACK_URL);
 			context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(requestToken.getAuthenticationURL())));
+			Log.d(context.getString(R.string.app_name), "Se abre el browser para solicitar autorización");
 		} catch (TwitterException e) {
 			e.printStackTrace();
 		}
@@ -124,11 +127,11 @@ public class TwitterHelper {
      */
 
     public static class TwitterConsts {
-        static String PREFERENCE_NAME = "twitter_oauth";
+        public static String PREFERENCE_NAME = "twitter_oauth";
         static final String PREF_KEY_SECRET = "oauth_token_secret";
         static final String PREF_KEY_TOKEN = "oauth_token";
 
-        static final String CALLBACK_URL = "oauth://t4jsample";
+        public static final String CALLBACK_URL = "oauth://t4jsample";
 
         static final String IEXTRA_AUTH_URL = "auth_url";
         static final String IEXTRA_OAUTH_VERIFIER = "oauth_verifier";
