@@ -1,6 +1,6 @@
 // WARNING: DON'T ADD THIS FILE TO A PUBLIC REPO!
 
-package com.odobo.twlocatorapi.util.twitter;
+package io.keepcoding.twlocator.util.twitter;
 
 public class TwitterPrivateKeyAndSecret {
     static String CONSUMER_KEY = "CcH62UBJOfyl9Pld7njRV8QUu";

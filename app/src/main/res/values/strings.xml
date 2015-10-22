@@ -9,4 +9,5 @@
     <string name="error_getting_location">There was an error getting the location of this address, please reword your query</string>
     <string name="twiiter_auth_ok">Twitter authorization finished successfully</string>
     <string name="error_network">It looks like there\'s no network connection right now, showing last tweets</string>
+    <string name="authorize_this_app">Authorize this app</string>
 </resources>

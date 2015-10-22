@@ -1,6 +1,6 @@
 
 
-package com.odobo.twlocatorapi.util.twitter;
+package io.keepcoding.twlocator.util.twitter;
 
 
 import android.content.Context;

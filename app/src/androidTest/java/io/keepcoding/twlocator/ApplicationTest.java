@@ -1,4 +1,4 @@
-package com.odobo.twlocatorapi;
+package io.keepcoding.twlocator;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

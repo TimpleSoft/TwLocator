@@ -1,4 +1,4 @@
-package com.odobo.twlocatorapi.util.net;
+package io.keepcoding.twlocator.util;
 
 import android.app.Application;
 import android.content.Context;
