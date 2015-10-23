@@ -11,6 +11,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
@@ -57,6 +60,9 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
     @Bind(R.id.button)
     Button button;
 
+    MapFragment mMapFragment;
+    GoogleMap mMap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +77,18 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
             twitterTask.setListener(this);
 
             twitterTask.execute();
+
+            mMapFragment = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
+
+            if(mMapFragment != null){
+                mMap = mMapFragment.getMap();
+
+                if(mMap == null){
+                    Toast.makeText(this, "Map died!", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
         } else {
             Toast.makeText(this, getString(R.string.error_network), Toast.LENGTH_LONG).show();
 
