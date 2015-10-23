@@ -11,10 +11,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.Bind;
@@ -28,11 +34,14 @@ import twitter4j.AsyncTwitter;
 import twitter4j.Category;
 import twitter4j.DirectMessage;
 import twitter4j.Friendship;
+import twitter4j.GeoLocation;
 import twitter4j.IDs;
 import twitter4j.Location;
 import twitter4j.OEmbed;
 import twitter4j.PagableResponseList;
+import twitter4j.Paging;
 import twitter4j.Place;
+import twitter4j.Query;
 import twitter4j.QueryResult;
 import twitter4j.RateLimitStatus;
 import twitter4j.Relationship;
@@ -40,6 +49,7 @@ import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
 import twitter4j.Status;
 import twitter4j.Trends;
+import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.TwitterListener;
@@ -62,6 +72,8 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
 
     MapFragment mMapFragment;
     GoogleMap mMap;
+
+    List<Status> mStatusList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,13 +124,15 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
 
             @Override
             public void gotHomeTimeline(ResponseList<Status> statuses) {
-
+                for (Status s : statuses) {
+                    Log.d("Twitter Home Timeline", "tweet: " + s.getText());
+                }
             }
 
             @Override
             public void gotUserTimeline(ResponseList<Status> statuses) {
                 for (Status s : statuses) {
-                    Log.d("Twitter", "tweet: " + s.getText());
+                    Log.d("Twitter User Timeline", "tweet: " + s.getText());
                 }
             }
 
@@ -605,6 +619,49 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
     public void twitterConnectionFinished() {
         Toast.makeText(this, getString(R.string.twiiter_auth_ok), Toast.LENGTH_SHORT).show();
         Log.d(getString(R.string.app_name), getString(R.string.twiiter_auth_ok));
+
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try{
+                    Twitter twitter = new TwitterHelper(MainActivity.this).getTwitter();
+                    Query query = new Query();
+                    query.setGeoCode(new GeoLocation(40.446054, -3.693956), 10, Query.Unit.km);
+                    //query.se(20);
+                    QueryResult queryResult = twitter.search(query);
+
+                    List<Status> statuses = queryResult.getTweets();
+                    mStatusList = statuses;
+                    MainActivity.this.runOnUiThread(new Runnable() {
+
+                        public void run() {
+                            for (Status s : mStatusList) {
+                                if (s.getGeoLocation() != null) {
+
+                                    MarkerOptions marker = new MarkerOptions().position(
+                                            new LatLng(s.getGeoLocation().getLatitude(),
+                                                    s.getGeoLocation().getLongitude())).title(s.getText());
+                                    marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
+                                    //marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.note));
+                                    mMap.addMarker(marker);
+                                    Log.d("Twitter Home Timeline", "tweet: " + s.getText() +
+                                            ", GeoLocation: " + s.getGeoLocation().toString() +
+                                            ", Photo: " + s.getUser().getProfileImageURL());
+                                }
+                            }
+                            centerMap(mMap, 40.446054, -3.693956, 12);
+                        }
+                    });
+
+                }catch(Exception e){
+                    Log.e(getString(R.string.app_name), e.getMessage());
+                }
+            }
+        };
+
+        thread.start();
+
+
     }
 
     /**
@@ -622,6 +679,19 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
 
             twitterTask.execute();
         }
+    }
+
+
+    public void centerMap(GoogleMap map, double latitude, double longitude, int zoomLevel){
+        // 40.446054, -3.693956
+
+        LatLng coordinate = new LatLng(latitude, longitude);
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(coordinate)
+                .zoom(zoomLevel)
+                .build();
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
     }
 
 }
