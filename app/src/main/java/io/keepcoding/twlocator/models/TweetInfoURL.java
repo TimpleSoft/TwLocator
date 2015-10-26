@@ -14,6 +14,9 @@ public class TweetInfoURL {
     public TweetInfoURL(long id, String text, WeakReference<Tweet> tweet) {
         mId = id;
         mText = text;
+        if(text.contains("https://instagram.com") && !text.endsWith("/media")){
+           mText += "media";
+        }
         mTweet = tweet;
     }
 

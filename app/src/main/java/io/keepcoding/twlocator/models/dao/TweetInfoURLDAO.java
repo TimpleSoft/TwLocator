@@ -8,25 +8,31 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.keepcoding.twlocator.models.Tweet;
+import io.keepcoding.twlocator.models.TweetInfoURL;
 import io.keepcoding.twlocator.models.db.DBHelper;
 
 import static io.keepcoding.twlocator.models.db.DBConstants.KEY_TWEET_ID;
+import static io.keepcoding.twlocator.models.db.DBConstants.KEY_TWEET_INFO_URL_ID;
+import static io.keepcoding.twlocator.models.db.DBConstants.KEY_TWEET_INFO_URL_TWEET;
+import static io.keepcoding.twlocator.models.db.DBConstants.KEY_TWEET_INFO_URL_URL;
 import static io.keepcoding.twlocator.models.db.DBConstants.KEY_TWEET_PHOTO_PROFILE_URL;
 import static io.keepcoding.twlocator.models.db.DBConstants.KEY_TWEET_TEXT;
 import static io.keepcoding.twlocator.models.db.DBConstants.KEY_TWEET_USERNAME;
 import static io.keepcoding.twlocator.models.db.DBConstants.TABLE_TWEET;
+import static io.keepcoding.twlocator.models.db.DBConstants.TABLE_TWEET_INFO_URL;
 
 
-public class TweetInfoURLDAO implements DAOPersistable<Tweet> {
+public class TweetInfoURLDAO implements DAOPersistable<TweetInfoURL> {
 
-    private final WeakReference<Context> context;
+    private static WeakReference<Context> context = null;
     public static final String[] allColumns = {
-            KEY_TWEET_ID,
-            KEY_TWEET_USERNAME,
-            KEY_TWEET_TEXT,
-            KEY_TWEET_PHOTO_PROFILE_URL
+            KEY_TWEET_INFO_URL_ID,
+            KEY_TWEET_INFO_URL_URL,
+            KEY_TWEET_INFO_URL_TWEET
     };
 
     public TweetInfoURLDAO(@NonNull Context context) {
@@ -34,7 +40,7 @@ public class TweetInfoURLDAO implements DAOPersistable<Tweet> {
     }
 
     @Override
-    public long insert(@NonNull Tweet data) {
+    public long insert(@NonNull TweetInfoURL data) {
         if (data == null) {
             return DBHelper.INVALID_ID;
         }
@@ -46,7 +52,7 @@ public class TweetInfoURLDAO implements DAOPersistable<Tweet> {
         long id = DBHelper.INVALID_ID;
 
         try {
-            id = db.insert(TABLE_TWEET, null, getContentValues(data));
+            id = db.insert(TABLE_TWEET_INFO_URL, null, getContentValues(data));
             // data.setId(id);
             db.setTransactionSuccessful();
         } finally {
@@ -58,18 +64,17 @@ public class TweetInfoURLDAO implements DAOPersistable<Tweet> {
     }
 
 
-    public static ContentValues getContentValues(Tweet tweet) {
+    public static ContentValues getContentValues(TweetInfoURL tweetInfoURL) {
 
         ContentValues content = new ContentValues();
-        content.put(KEY_TWEET_USERNAME, tweet.getUserName());
-        content.put(KEY_TWEET_PHOTO_PROFILE_URL, tweet.getURLUserPhotoProfile());
-        content.put(KEY_TWEET_TEXT, tweet.getText());
+        content.put(KEY_TWEET_INFO_URL_URL, tweetInfoURL.getText());
+        content.put(KEY_TWEET_INFO_URL_TWEET, tweetInfoURL.getTweet().get().getId());
 
         return content;
     }
 
     @Override
-    public void update(long id, @NonNull Tweet data) {
+    public void update(long id, @NonNull TweetInfoURL data) {
         if (data == null) {
             return;
         }
@@ -80,7 +85,7 @@ public class TweetInfoURLDAO implements DAOPersistable<Tweet> {
         db.beginTransaction();
 
         try {
-            db.update(TABLE_TWEET, getContentValues(data), KEY_TWEET_ID + "=" + id, null);
+            db.update(TABLE_TWEET_INFO_URL, getContentValues(data), KEY_TWEET_INFO_URL_ID + "=" + id, null);
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
@@ -94,16 +99,16 @@ public class TweetInfoURLDAO implements DAOPersistable<Tweet> {
         SQLiteDatabase db = DBHelper.getDb(dbHelper);
 
         if (id == DBHelper.INVALID_ID) {
-            db.delete(TABLE_TWEET, null, null);
+            db.delete(TABLE_TWEET_INFO_URL, null, null);
         } else {
-            db.delete(TABLE_TWEET, KEY_TWEET_ID + "=?", new String[]{"" + id});
+            db.delete(TABLE_TWEET_INFO_URL, KEY_TWEET_INFO_URL_ID + "=?", new String[]{"" + id});
         }
 
         db.close();
     }
 
     @Override
-    public void delete(@NonNull Tweet data) {
+    public void delete(@NonNull TweetInfoURL data) {
         if (data != null) {
             delete(data.getId());
         }
@@ -120,41 +125,67 @@ public class TweetInfoURLDAO implements DAOPersistable<Tweet> {
         final DBHelper dbHelper = DBHelper.getInstance(context.get());
         SQLiteDatabase db = DBHelper.getDb(dbHelper);
 
-        Cursor cursor = db.query(TABLE_TWEET, allColumns, null, null, null, null, KEY_TWEET_ID);
+        Cursor cursor = db.query(TABLE_TWEET_INFO_URL, allColumns, null, null, null, null, KEY_TWEET_INFO_URL_ID);
         return cursor;
     }
 
     @Override
-    public Tweet query(long id) {
-        Tweet tweet = null;
+    public TweetInfoURL query(long id) {
+        TweetInfoURL tweetInfoURL = null;
 
         final DBHelper dbHelper = DBHelper.getInstance(context.get());
         SQLiteDatabase db = DBHelper.getDb(dbHelper);
 
-        final String whereClause = KEY_TWEET_ID + "=" + id;
-        Cursor cursor = db.query(TABLE_TWEET, allColumns, whereClause, null, null, null, KEY_TWEET_ID);
+        final String whereClause = KEY_TWEET_INFO_URL_ID + "=" + id;
+        Cursor cursor = db.query(TABLE_TWEET_INFO_URL, allColumns, whereClause, null, null, null, KEY_TWEET_INFO_URL_ID);
 
         if (cursor != null) {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
 
-                tweet = tweetFromCursor(cursor);
+                tweetInfoURL = tweetFromCursor(cursor);
             }
         }
 
         cursor.close();
         db.close();
 
-        return tweet;
+        return tweetInfoURL;
+    }
+
+    public ArrayList<TweetInfoURL> query(Tweet tweet) {
+        ArrayList<TweetInfoURL> tweetInfoURLArrayList = new ArrayList<>();
+
+        final DBHelper dbHelper = DBHelper.getInstance(context.get());
+        SQLiteDatabase db = DBHelper.getDb(dbHelper);
+
+        final String whereClause = KEY_TWEET_INFO_URL_TWEET + "=" + tweet.getId();
+        Cursor cursor = db.query(TABLE_TWEET_INFO_URL, allColumns, whereClause, null, null, null, KEY_TWEET_INFO_URL_ID);
+
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+
+                TweetInfoURL tweetInfoURL = tweetFromCursor(cursor);
+                tweetInfoURLArrayList.add(tweetInfoURL);
+            }
+        }
+
+        cursor.close();
+        db.close();
+
+        return tweetInfoURLArrayList;
     }
 
     @NonNull
-    public static Tweet tweetFromCursor(Cursor cursor) {
-        Tweet tweet;
-        tweet = new Tweet(cursor.getString(cursor.getColumnIndex(KEY_TWEET_USERNAME)),
-                          cursor.getString(cursor.getColumnIndex(KEY_TWEET_PHOTO_PROFILE_URL)),
-                          cursor.getString(cursor.getColumnIndex(KEY_TWEET_TEXT)));
-        tweet.setId(cursor.getLong(cursor.getColumnIndex(KEY_TWEET_ID)));
-        return tweet;
+    public static TweetInfoURL tweetFromCursor(Cursor cursor) {
+        TweetInfoURL tweetInfoURL;
+        TweetDAO tweetDAO = new TweetDAO(context.get());
+        Tweet tweet = tweetDAO.query(cursor.getLong(cursor.getColumnIndex(KEY_TWEET_INFO_URL_ID)));
+        tweetInfoURL = new TweetInfoURL(
+                cursor.getString(cursor.getColumnIndex(KEY_TWEET_INFO_URL_URL)),
+                new WeakReference<>(tweet));
+        tweetInfoURL.setId(cursor.getLong(cursor.getColumnIndex(KEY_TWEET_INFO_URL_ID)));
+        return tweetInfoURL;
     }
 }

@@ -48,7 +48,9 @@ import butterknife.ButterKnife;
 import io.keepcoding.twlocator.R;
 import io.keepcoding.twlocator.dialog_fragments.TweetDialogFragment;
 import io.keepcoding.twlocator.models.Tweet;
+import io.keepcoding.twlocator.models.TweetInfoURL;
 import io.keepcoding.twlocator.models.dao.TweetDAO;
+import io.keepcoding.twlocator.models.dao.TweetInfoURLDAO;
 import io.keepcoding.twlocator.models.db.DBHelper;
 import io.keepcoding.twlocator.util.CircleTransform;
 import io.keepcoding.twlocator.util.NetworkHelper;
@@ -816,6 +818,7 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
             public void run() {
                 try{
                     final TweetDAO tweetDAO = new TweetDAO(MainActivity.this);
+                    final TweetInfoURLDAO tweetInfoURLDAO = new TweetInfoURLDAO(MainActivity.this);
                     Twitter twitter = new TwitterHelper(MainActivity.this).getTwitter();
                     Query query = new Query();
                     query.setGeoCode(new GeoLocation(latitude, longitude), 10, Query.Unit.km);
@@ -837,37 +840,11 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
                                 tweet.setId(id);
 
                                 for(URLEntity urlEntity: s.getURLEntities()){
-                                    URLEntity urlEntity1 = new URLEntity() {
-                                        @Override
-                                        public String getText() {
-                                            return null;
-                                        }
-
-                                        @Override
-                                        public String getURL() {
-                                            return null;
-                                        }
-
-                                        @Override
-                                        public String getExpandedURL() {
-                                            return null;
-                                        }
-
-                                        @Override
-                                        public String getDisplayURL() {
-                                            return null;
-                                        }
-
-                                        @Override
-                                        public int getStart() {
-                                            return 0;
-                                        }
-
-                                        @Override
-                                        public int getEnd() {
-                                            return 0;
-                                        }
-                                    };
+                                    TweetInfoURL tweetInfoURL;
+                                    tweetInfoURL = new TweetInfoURL(
+                                            urlEntity.getExpandedURL(),
+                                            new WeakReference<Tweet>(tweet));
+                                    tweetInfoURLDAO.insert(tweetInfoURL);
                                 }
 
                                 MarkerOptions markerOptions = new MarkerOptions()

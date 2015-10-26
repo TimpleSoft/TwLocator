@@ -120,6 +120,13 @@
                 android:layout_height="match_parent"
                 android:textSize="18sp"/>
 
+            <ImageView
+                android:id="@+id/tweetImage"
+                android:padding="15dp"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"/>
+
         </LinearLayout>
 
     </RelativeLayout>

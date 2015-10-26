@@ -18,13 +18,16 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.keepcoding.twlocator.R;
 import io.keepcoding.twlocator.models.Tweet;
+import io.keepcoding.twlocator.models.TweetInfoURL;
 import io.keepcoding.twlocator.models.dao.TweetDAO;
+import io.keepcoding.twlocator.models.dao.TweetInfoURLDAO;
 import io.keepcoding.twlocator.util.CircleTransform;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
@@ -43,6 +46,7 @@ public class TweetDialogFragment extends DialogFragment {
     @Bind(R.id.btnClose) Button btnClose;
     @Bind(R.id.txtTweetUserName) TextView txtUserName;
     @Bind(R.id.txtTweetText) TextView txtTweetText;
+    @Bind(R.id.tweetImage) ImageView imgTweet;
 
     @Nullable
     @Override
@@ -62,6 +66,7 @@ public class TweetDialogFragment extends DialogFragment {
         Tweet tweet = tweetDAO.query(Long.parseLong(tweetId));
         txtUserName.setText(tweet.getUserName());
         txtTweetText.setText(tweet.getText());
+
         btnClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -80,6 +85,22 @@ public class TweetDialogFragment extends DialogFragment {
                     .into(imgUser);
 
         }
+
+        TweetInfoURLDAO tweetInfoURLDAO = new TweetInfoURLDAO(getActivity());
+        ArrayList<TweetInfoURL> tweetInfoURLArrayList = tweetInfoURLDAO.query(tweet);
+
+        if(tweetInfoURLArrayList.size() != 0) {
+
+            //ImageView imgUser = (ImageView) view.findViewById(R.id.imgUser);
+            Picasso.with(getActivity())
+                    .load(tweetInfoURLArrayList.get(0).getText())
+                    .into(imgTweet);
+            imgTweet.setVisibility(View.VISIBLE);
+
+        }else{
+            imgTweet.setVisibility(View.GONE);
+        }
+
 
         return view;
     }
