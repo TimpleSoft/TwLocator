@@ -104,6 +104,7 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
     List<Status> mStatusList;
 
     private MenuItem mSearchAction;
+    private MenuItem mLastSearchAction;
     private boolean isSearchOpened = false;
     private EditText edtSeach;
 
@@ -130,6 +131,21 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
                 if(mMap == null){
                     Toast.makeText(this, "Map died!", Toast.LENGTH_SHORT).show();
                 }else{
+
+                    mMap.setMyLocationEnabled(true);
+                    mMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+                    mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+                        @Override
+                        public boolean onMyLocationButtonClick() {
+                            getTweetsByAddress(mMap.getMyLocation().getLatitude(),
+                                               mMap.getMyLocation().getLongitude());
+                            centerMap(mMap, mMap.getMyLocation().getLatitude(),
+                                            mMap.getMyLocation().getLongitude(), 12);
+                            return true;
+                        }
+                    });
+
                     mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                         @Override
                         public boolean onMarkerClick(Marker marker) {
@@ -649,6 +665,7 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         mSearchAction = menu.findItem(R.id.action_search);
+        mLastSearchAction = menu.findItem(R.id.action_last_search);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -659,6 +676,9 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
         switch (id) {
             case R.id.action_search:
                 handleMenuSearch();
+                return true;
+            case R.id.action_last_search:
+                Toast.makeText(this, getString(R.string.action_last_search), Toast.LENGTH_SHORT).show();
                 return true;
         }
 
@@ -688,6 +708,9 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
 
             //add the search icon in the action bar
             mSearchAction.setIcon(ContextCompat.getDrawable(this, android.R.drawable.ic_menu_search));
+
+            // Show action_last_search
+            mLastSearchAction.setVisible(true);
 
             isSearchOpened = false;
         } else { //open the search entry
@@ -722,6 +745,10 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
             //add the close icon
             mSearchAction.setIcon(
                     ContextCompat.getDrawable(this, android.R.drawable.ic_menu_close_clear_cancel));
+
+
+            // Hide action_last_search
+            mLastSearchAction.setVisible(false);
 
             isSearchOpened = true;
         }

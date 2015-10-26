@@ -13,4 +13,5 @@
     <string name="tweet_text">Texto del tweet</string>
     <string name="usern_name_tweet">Nombre de Usuario</string>
     <string name="invalid_search_address">No se ha introducido una dirección correcta</string>
+    <string name="action_last_search">Última Búsqueda</string>
 </resources>
