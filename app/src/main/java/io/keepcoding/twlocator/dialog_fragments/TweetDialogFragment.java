@@ -23,6 +23,8 @@ import java.util.Date;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.keepcoding.twlocator.R;
+import io.keepcoding.twlocator.models.Tweet;
+import io.keepcoding.twlocator.models.dao.TweetDAO;
 import io.keepcoding.twlocator.util.CircleTransform;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
@@ -49,17 +51,17 @@ public class TweetDialogFragment extends DialogFragment {
 
         ButterKnife.bind(this, view);
 
-        String tweetUserName = "";
-        String tweetText = "";
+        String tweetId = "0";
 
         Bundle args = getArguments();
         if (args != null) {
-            tweetUserName = args.getString("tweetUserName");
-            tweetText = args.getString("tweetText");
+            tweetId = args.getString("tweetId");
         }
 
-        //txtUserName.setText(tweetUserName);
-        txtTweetText.setText(tweetText);
+        TweetDAO tweetDAO = new TweetDAO(getActivity());
+        Tweet tweet = tweetDAO.query(Long.parseLong(tweetId));
+        txtUserName.setText(tweet.getUserName());
+        txtTweetText.setText(tweet.getText());
         btnClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -67,11 +69,11 @@ public class TweetDialogFragment extends DialogFragment {
             }
         });
 
-        if(tweetUserName.length() != 0) {
+        if(tweet.getURLUserPhotoProfile().length() != 0) {
 
             ImageView imgUser = (ImageView) view.findViewById(R.id.imgUser);
             Picasso.with(getActivity())
-                    .load(tweetUserName)
+                    .load(tweet.getURLUserPhotoProfile())
                     .transform(new CircleTransform())
                     .placeholder(R.drawable.img_usuariosn)
                     .error(R.drawable.img_usuariosn)

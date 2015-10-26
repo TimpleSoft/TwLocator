@@ -47,6 +47,9 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.keepcoding.twlocator.R;
 import io.keepcoding.twlocator.dialog_fragments.TweetDialogFragment;
+import io.keepcoding.twlocator.models.Tweet;
+import io.keepcoding.twlocator.models.dao.TweetDAO;
+import io.keepcoding.twlocator.models.db.DBHelper;
 import io.keepcoding.twlocator.util.CircleTransform;
 import io.keepcoding.twlocator.util.NetworkHelper;
 import io.keepcoding.twlocator.util.twitter.ConnectTwitterTask;
@@ -76,6 +79,7 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.TwitterListener;
 import twitter4j.TwitterMethod;
+import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserList;
 import twitter4j.api.HelpResources;
@@ -89,8 +93,8 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
     ConnectTwitterTask twitterTask;
     private static final int URL_LOADER = 0;
 
-    @Bind(R.id.button)
-    Button button;
+    /*@Bind(R.id.button)
+    Button button;*/
 
     MapFragment mMapFragment;
     GoogleMap mMap;
@@ -106,7 +110,7 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ButterKnife.bind(this);
+        //ButterKnife.bind(this);
 
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
@@ -128,8 +132,7 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
                         @Override
                         public boolean onMarkerClick(Marker marker) {
                             Bundle args = new Bundle();
-                            args.putString("tweetUserName", marker.getSnippet());
-                            args.putString("tweetText", marker.getTitle());
+                            args.putString("tweetId", marker.getSnippet());
                             TweetDialogFragment dFragment = new TweetDialogFragment();
                             dFragment.setArguments(args);
                             // Show DialogFragment
@@ -146,12 +149,12 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
 
         }
 
-        button.setOnClickListener(new View.OnClickListener() {
+        /*button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 launchTwitter();
             }
-        });
+        });*/
     }
 
     private void launchTwitter() {
@@ -812,6 +815,7 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
             @Override
             public void run() {
                 try{
+                    final TweetDAO tweetDAO = new TweetDAO(MainActivity.this);
                     Twitter twitter = new TwitterHelper(MainActivity.this).getTwitter();
                     Query query = new Query();
                     query.setGeoCode(new GeoLocation(latitude, longitude), 10, Query.Unit.km);
@@ -822,21 +826,63 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
                     MainActivity.this.runOnUiThread(new Runnable() {
 
                         public void run() {
-                            for (final Status s : mStatusList) {
-                                if (s.getGeoLocation() != null) {
+                        for (final Status s : mStatusList) {
+                            if (s.getGeoLocation() != null) {
 
-                                    MarkerOptions markerOptions = new MarkerOptions()
-                                            .position(new LatLng(s.getGeoLocation().getLatitude(),
-                                                    s.getGeoLocation().getLongitude()))
-                                            .title(s.getText())
-                                            .snippet(s.getUser().getProfileImageURL());
+                                Tweet tweet = new Tweet(
+                                        s.getUser().getName(),
+                                        s.getUser().getBiggerProfileImageURL(),
+                                        s.getText());
+                                long id = tweetDAO.insert(tweet);
+                                tweet.setId(id);
 
-                                    mMap.addMarker(markerOptions);
-                                    Log.d("Twitter Home Timeline", "tweet: " + s.getText() +
-                                            ", GeoLocation: " + s.getGeoLocation().toString() +
-                                            ", Photo: " + s.getUser().getProfileImageURL());
+                                for(URLEntity urlEntity: s.getURLEntities()){
+                                    URLEntity urlEntity1 = new URLEntity() {
+                                        @Override
+                                        public String getText() {
+                                            return null;
+                                        }
+
+                                        @Override
+                                        public String getURL() {
+                                            return null;
+                                        }
+
+                                        @Override
+                                        public String getExpandedURL() {
+                                            return null;
+                                        }
+
+                                        @Override
+                                        public String getDisplayURL() {
+                                            return null;
+                                        }
+
+                                        @Override
+                                        public int getStart() {
+                                            return 0;
+                                        }
+
+                                        @Override
+                                        public int getEnd() {
+                                            return 0;
+                                        }
+                                    };
                                 }
+
+                                MarkerOptions markerOptions = new MarkerOptions()
+                                        .position(new LatLng(s.getGeoLocation().getLatitude(),
+                                                s.getGeoLocation().getLongitude()))
+                                        .title(s.getText())
+                                        .snippet(String.valueOf(tweet.getId()));
+
+
+                                mMap.addMarker(markerOptions);
+                                Log.d("Twitter Home Timeline", "tweet: " + s.getText() +
+                                        ", GeoLocation: " + s.getGeoLocation().toString() +
+                                        ", Photo: " + s.getUser().getProfileImageURL());
                             }
+                        }
                         centerMap(mMap, latitude, longitude, 12);
                         }
                     });
