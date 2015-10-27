@@ -6,7 +6,7 @@
     <ImageView
         android:id="@+id/marker_img"
         android:layout_width="55dp"
-        android:layout_height="65dp"
+        android:layout_height="55dp"
         android:src="@drawable/custom_marker" />
 
     <!--<TextView

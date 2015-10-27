@@ -22,6 +22,8 @@ public class TweetDAO implements DAOPersistable<Tweet> {
             KEY_TWEET_ID,
             KEY_TWEET_USERNAME,
             KEY_TWEET_TEXT,
+            KEY_TWEET_LATITUDE,
+            KEY_TWEET_LONGITUDE,
             KEY_TWEET_PHOTO_PROFILE_URL
     };
 
@@ -60,6 +62,8 @@ public class TweetDAO implements DAOPersistable<Tweet> {
         content.put(KEY_TWEET_USERNAME, tweet.getUserName());
         content.put(KEY_TWEET_PHOTO_PROFILE_URL, tweet.getURLUserPhotoProfile());
         content.put(KEY_TWEET_TEXT, tweet.getText());
+        content.put(KEY_TWEET_LATITUDE, tweet.getText());
+        content.put(KEY_TWEET_LONGITUDE, tweet.getText());
 
         return content;
     }

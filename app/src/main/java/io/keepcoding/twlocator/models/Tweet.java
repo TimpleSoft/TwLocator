@@ -16,6 +16,8 @@ public class Tweet {
     private String mUserName;
     private String mURLUserPhotoProfile;
     private String mText;
+    private double mLatitude;
+    private double mLongitude;
     private List<URLEntity> mURLEntityList;
 
     public Tweet(String userName, String URLUserPhotoProfile, String text) {
@@ -23,6 +25,12 @@ public class Tweet {
         mURLUserPhotoProfile = URLUserPhotoProfile;
         mText = text;
         mURLEntityList = new ArrayList<>();
+    }
+
+    public Tweet(String userName, String URLUserPhotoProfile, String text, double latitude, double longitude) {
+        this(userName, URLUserPhotoProfile, text);
+        mLatitude = latitude;
+        mLongitude = longitude;
     }
 
     // lazy getter
@@ -76,4 +84,19 @@ public class Tweet {
         mText = text;
     }
 
+    public double getLatitude() {
+        return mLatitude;
+    }
+
+    public void setLatitude(double latitude) {
+        mLatitude = latitude;
+    }
+
+    public double getLongitude() {
+        return mLongitude;
+    }
+
+    public void setLongitude(double longitude) {
+        mLongitude = longitude;
+    }
 }

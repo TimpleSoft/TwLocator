@@ -5,10 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -31,6 +34,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -39,6 +43,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Map;
@@ -95,13 +100,9 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
     ConnectTwitterTask twitterTask;
     private static final int URL_LOADER = 0;
 
-    /*@Bind(R.id.button)
-    Button button;*/
-
     MapFragment mMapFragment;
     GoogleMap mMap;
-
-    List<Status> mStatusList;
+    MarkerOptions mMarkerOptions;
 
     private MenuItem mSearchAction;
     private MenuItem mLastSearchAction;
@@ -149,12 +150,14 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
                     mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                         @Override
                         public boolean onMarkerClick(Marker marker) {
+
                             Bundle args = new Bundle();
                             args.putString("tweetId", marker.getSnippet());
                             TweetDialogFragment dFragment = new TweetDialogFragment();
                             dFragment.setArguments(args);
                             // Show DialogFragment
                             dFragment.show(MainActivity.this.getFragmentManager(), "Dialog Fragment");
+
                             return true;
                         }
                     });
@@ -810,33 +813,20 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
     }
 
 
-    public void centerMap(GoogleMap map, double latitude, double longitude, int zoomLevel){
-        // 40.446054, -3.693956
+    public void centerMap(final GoogleMap map, final double latitude, final double longitude, final int zoomLevel){
 
-        LatLng coordinate = new LatLng(latitude, longitude);
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(coordinate)
-                .zoom(zoomLevel)
-                .build();
-        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        (new Handler(Looper.getMainLooper())).post(new Runnable() {
+            @Override
+            public void run() {
+                LatLng coordinate = new LatLng(latitude, longitude);
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(coordinate)
+                        .zoom(zoomLevel)
+                        .build();
+                map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            }
+        });
 
-    }
-
-
-    // Convert a view to bitmap
-    public static Bitmap createDrawableFromView(Context context, View view) {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        view.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
-        view.measure(displayMetrics.widthPixels, displayMetrics.heightPixels);
-        view.layout(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels);
-        view.buildDrawingCache();
-        Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-
-        Canvas canvas = new Canvas(bitmap);
-        view.draw(canvas);
-
-        return bitmap;
     }
 
     public void getTweetsByAddress(final double latitude, final double longitude){
@@ -844,6 +834,9 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
             @Override
             public void run() {
                 try{
+
+                    //mMap.clear();
+
                     final TweetDAO tweetDAO = new TweetDAO(MainActivity.this);
                     final TweetInfoURLDAO tweetInfoURLDAO = new TweetInfoURLDAO(MainActivity.this);
                     Twitter twitter = new TwitterHelper(MainActivity.this).getTwitter();
@@ -852,44 +845,32 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
                     QueryResult queryResult = twitter.search(query);
 
                     List<Status> statuses = queryResult.getTweets();
-                    mStatusList = statuses;
-                    MainActivity.this.runOnUiThread(new Runnable() {
 
-                        public void run() {
-                        for (final Status s : mStatusList) {
-                            if (s.getGeoLocation() != null) {
+                    for (final Status s : statuses) {
+                        if (s.getGeoLocation() != null) {
 
-                                Tweet tweet = new Tweet(
-                                        s.getUser().getName(),
-                                        s.getUser().getBiggerProfileImageURL(),
-                                        s.getText());
-                                long id = tweetDAO.insert(tweet);
-                                tweet.setId(id);
+                            Tweet tweet = new Tweet(
+                                    s.getUser().getName(),
+                                    s.getUser().getBiggerProfileImageURL(),
+                                    s.getText(),
+                                    s.getGeoLocation().getLatitude(),
+                                    s.getGeoLocation().getLongitude());
+                            long id = tweetDAO.insert(tweet);
+                            tweet.setId(id);
 
-                                for(URLEntity urlEntity: s.getURLEntities()){
-                                    TweetInfoURL tweetInfoURL;
-                                    tweetInfoURL = new TweetInfoURL(
-                                            urlEntity.getExpandedURL(),
-                                            new WeakReference<Tweet>(tweet));
-                                    tweetInfoURLDAO.insert(tweetInfoURL);
-                                }
-
-                                MarkerOptions markerOptions = new MarkerOptions()
-                                        .position(new LatLng(s.getGeoLocation().getLatitude(),
-                                                s.getGeoLocation().getLongitude()))
-                                        .title(s.getText())
-                                        .snippet(String.valueOf(tweet.getId()));
-
-
-                                mMap.addMarker(markerOptions);
-                                Log.d("Twitter Home Timeline", "tweet: " + s.getText() +
-                                        ", GeoLocation: " + s.getGeoLocation().toString() +
-                                        ", Photo: " + s.getUser().getProfileImageURL());
+                            for(URLEntity urlEntity: s.getURLEntities()){
+                                TweetInfoURL tweetInfoURL;
+                                tweetInfoURL = new TweetInfoURL(
+                                        urlEntity.getExpandedURL(),
+                                        new WeakReference<>(tweet));
+                                tweetInfoURLDAO.insert(tweetInfoURL);
                             }
+                            loadImageProfileOnMap(tweet);
                         }
-                        centerMap(mMap, latitude, longitude, 12);
-                        }
-                    });
+                    }
+                    centerMap(mMap, latitude, longitude, 12);
+
+
 
                 }catch(Exception e){
                     Log.e(getString(R.string.app_name), e.getMessage());
@@ -899,6 +880,48 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
 
         thread.start();
     }
+
+    public void loadImageProfileOnMap(final Tweet tweet){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                BitmapDescriptor bitmapDescriptor = null;
+
+                try {
+
+                    bitmapDescriptor = BitmapDescriptorFactory.
+                            fromBitmap(Picasso.with(MainActivity.this)
+                                    .load(tweet.getURLUserPhotoProfile())
+                                    .transform(new CircleTransform())
+                                    .get());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                mMarkerOptions = new MarkerOptions()
+                        .position(new LatLng(tweet.getLatitude(),
+                                tweet.getLongitude()))
+                        .title(tweet.getText())
+                        .snippet(String.valueOf(tweet.getId()))
+                        .icon(bitmapDescriptor);
+
+                (new Handler(Looper.getMainLooper())).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMap.addMarker(mMarkerOptions);
+
+                    }
+                });
+
+
+            }
+        }).start();
+
+    }
+
+
 
 }
 
