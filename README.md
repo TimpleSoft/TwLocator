@@ -1,73 +1,13 @@
-# TWLocator App
+# Práctica  Fundamentos Android
+**Alumno:** Julio Martínez Ballester
 
-## What is this
+**Fecha de entrega:** 27-10-2015
 
-- This is the Android App Twitter Locator
+Aplicacion de Android Avanzado.
 
-## How to use this code
-
-You'll need IntelliJ Idea with Android development plugin or Android Studio 1.0 and upwards.
-We're using Gradle plugin 1.0.0
-
-## Modules
-
-This App's project is divided in several IntelliJ Modules:
-
-- api: wrapper for server-side API, JSON parsing, etc.
-- app: Android App (activities, etc.)
-
-Using different modules we can use different test suites (JUnit for pure Java code, AndroidTestCase for Android code)
-
-## Module api
-
-```
-src
-|- main
-  |-
-|- test: contains all unit tests for this module
-  |- java: code for Unit tests
-  |- resources: JSON stub data used to create stubs
-```
-
-## Module App
-
-### Package
-
-Contains the android.App subclass. This class kicks off dependency injection (see Dagger below). Also, see Dependency Injection package
-
-### Package app.di.modules
-
-Configuration for Dagger dependency injection
-
----
-
-
-## Main Third party Libraries used
-
-### Gson
-
-For converting JSON into Model objects
-
-### Retrofit
-
-For wrapping the REST Apis.
-[http://square.github.io/retrofit/]()
-
-### Otto
-
-_An enhanced event bus with emphasis on Android support_
-
-[Otto Page](http://square.github.io/otto/)
-
-### Butterknife
-
-### Dagger
-
-[Main Dagger page](http://square.github.io/dagger/)
-
-A [perfect introduction to Dagger](http://antonioleiva.com/dagger-android-part-2/)
-
-### Android Jobqueue
-
----
+# Comentarios
+- La aplicación sólo almacena en la BD la consulta actual y la anterior, el resto las va eliminando.
+- Hay ocasiones en que cuando carga la última búsqueda no se muestran todos los tweets correctamente,
+  no se a que se debe, pero no he conseguido solucionarlo, y no he querido perder más tiempo, para no
+  retrasar la ya tardía entrega de la práctica.
 
