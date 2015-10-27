@@ -8,7 +8,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
+import io.keepcoding.twlocator.models.Search;
 import io.keepcoding.twlocator.models.Tweet;
 import io.keepcoding.twlocator.models.db.DBHelper;
 
@@ -17,14 +20,15 @@ import static io.keepcoding.twlocator.models.db.DBConstants.*;
 
 public class TweetDAO implements DAOPersistable<Tweet> {
 
-    private final WeakReference<Context> context;
+    private static WeakReference<Context> context = null;
     public static final String[] allColumns = {
             KEY_TWEET_ID,
             KEY_TWEET_USERNAME,
             KEY_TWEET_TEXT,
             KEY_TWEET_LATITUDE,
             KEY_TWEET_LONGITUDE,
-            KEY_TWEET_PHOTO_PROFILE_URL
+            KEY_TWEET_PHOTO_PROFILE_URL,
+            KEY_TWEET_SEARCH
     };
 
     public TweetDAO(@NonNull Context context) {
@@ -62,8 +66,9 @@ public class TweetDAO implements DAOPersistable<Tweet> {
         content.put(KEY_TWEET_USERNAME, tweet.getUserName());
         content.put(KEY_TWEET_PHOTO_PROFILE_URL, tweet.getURLUserPhotoProfile());
         content.put(KEY_TWEET_TEXT, tweet.getText());
-        content.put(KEY_TWEET_LATITUDE, tweet.getText());
-        content.put(KEY_TWEET_LONGITUDE, tweet.getText());
+        content.put(KEY_TWEET_LATITUDE, tweet.getLatitude());
+        content.put(KEY_TWEET_LONGITUDE, tweet.getLongitude());
+        content.put(KEY_TWEET_SEARCH, tweet.getSearch().getId());
 
         return content;
     }
@@ -148,12 +153,43 @@ public class TweetDAO implements DAOPersistable<Tweet> {
         return tweet;
     }
 
+    public static List<Tweet> query(Search search) {
+        List<Tweet> tweets = new ArrayList<>();
+        Tweet tweet = null;
+
+        final DBHelper dbHelper = DBHelper.getInstance(context.get());
+        SQLiteDatabase db = DBHelper.getDb(dbHelper);
+
+        final String whereClause = KEY_TWEET_SEARCH + "=" + search.getId();
+        Cursor cursor = db.query(TABLE_TWEET, allColumns, whereClause, null, null, null, KEY_TWEET_ID);
+
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                while (cursor.moveToNext()) {
+                    tweet = tweetFromCursor(cursor);
+                    tweets.add(tweet);
+                }
+            }
+        }
+
+        cursor.close();
+        db.close();
+
+        return tweets;
+    }
+
     @NonNull
     public static Tweet tweetFromCursor(Cursor cursor) {
         Tweet tweet;
+        SearchDAO searchDAO = new SearchDAO(context.get());
+        Search search = searchDAO.query(cursor.getLong(cursor.getColumnIndex(KEY_TWEET_SEARCH)));
         tweet = new Tweet(cursor.getString(cursor.getColumnIndex(KEY_TWEET_USERNAME)),
                           cursor.getString(cursor.getColumnIndex(KEY_TWEET_PHOTO_PROFILE_URL)),
-                          cursor.getString(cursor.getColumnIndex(KEY_TWEET_TEXT)));
+                          cursor.getString(cursor.getColumnIndex(KEY_TWEET_TEXT)),
+                          search,
+                          cursor.getDouble(cursor.getColumnIndex(KEY_TWEET_LATITUDE)),
+                          cursor.getDouble(cursor.getColumnIndex(KEY_TWEET_LONGITUDE)));
         tweet.setId(cursor.getLong(cursor.getColumnIndex(KEY_TWEET_ID)));
         return tweet;
     }

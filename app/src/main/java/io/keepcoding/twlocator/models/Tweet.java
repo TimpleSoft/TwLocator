@@ -2,6 +2,7 @@ package io.keepcoding.twlocator.models;
 
 import android.support.annotation.NonNull;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -19,16 +20,18 @@ public class Tweet {
     private double mLatitude;
     private double mLongitude;
     private List<URLEntity> mURLEntityList;
+    private WeakReference<Search> mSearch;
 
-    public Tweet(String userName, String URLUserPhotoProfile, String text) {
+    public Tweet(String userName, String URLUserPhotoProfile, String text, Search search) {
         mUserName = userName;
         mURLUserPhotoProfile = URLUserPhotoProfile;
         mText = text;
+        mSearch = new WeakReference<>(search);
         mURLEntityList = new ArrayList<>();
     }
 
-    public Tweet(String userName, String URLUserPhotoProfile, String text, double latitude, double longitude) {
-        this(userName, URLUserPhotoProfile, text);
+    public Tweet(String userName, String URLUserPhotoProfile, String text, Search search, double latitude, double longitude) {
+        this(userName, URLUserPhotoProfile, text, search);
         mLatitude = latitude;
         mLongitude = longitude;
     }
@@ -99,4 +102,15 @@ public class Tweet {
     public void setLongitude(double longitude) {
         mLongitude = longitude;
     }
+
+
+    public Search getSearch() {
+        return mSearch.get();
+    }
+
+    public void setSearch(Search search) {
+        mSearch = new WeakReference<>(search);
+    }
+
+
 }

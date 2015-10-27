@@ -19,7 +19,6 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -28,18 +27,6 @@ import io.keepcoding.twlocator.models.Tweet;
 import io.keepcoding.twlocator.models.TweetInfoURL;
 import io.keepcoding.twlocator.models.dao.TweetDAO;
 import io.keepcoding.twlocator.models.dao.TweetInfoURLDAO;
-import io.keepcoding.twlocator.util.CircleTransform;
-import twitter4j.GeoLocation;
-import twitter4j.HashtagEntity;
-import twitter4j.MediaEntity;
-import twitter4j.Place;
-import twitter4j.RateLimitStatus;
-import twitter4j.Scopes;
-import twitter4j.Status;
-import twitter4j.SymbolEntity;
-import twitter4j.URLEntity;
-import twitter4j.User;
-import twitter4j.UserMentionEntity;
 
 public class TweetDialogFragment extends DialogFragment {
 
@@ -79,7 +66,6 @@ public class TweetDialogFragment extends DialogFragment {
             ImageView imgUser = (ImageView) view.findViewById(R.id.imgUser);
             Picasso.with(getActivity())
                     .load(tweet.getURLUserPhotoProfile())
-                    .transform(new CircleTransform())
                     .placeholder(R.drawable.img_usuariosn)
                     .error(R.drawable.img_usuariosn)
                     .into(imgUser);

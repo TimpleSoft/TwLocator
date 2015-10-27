@@ -14,4 +14,8 @@
     <string name="usern_name_tweet">Nombre de Usuario</string>
     <string name="invalid_search_address">No se ha introducido una dirección correcta</string>
     <string name="action_last_search">Última Búsqueda</string>
+    <string name="no_tweets_in_address">No se ha obtenido ningún tweet en la dirección establecida</string>
+    <string name="my_location">MyLocation</string>
+    <string name="not_last_search">No ha realizado ninguna búsqueda todavía.</string>
+    <string name="action_current_search">Búsqueda actual</string>
 </resources>
