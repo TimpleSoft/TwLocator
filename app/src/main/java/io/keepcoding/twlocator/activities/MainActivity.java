@@ -829,13 +829,25 @@ public class MainActivity extends ActionBarActivity implements ConnectTwitterTas
 
     }
 
+
+    public void clearMap(final GoogleMap map){
+
+        (new Handler(Looper.getMainLooper())).post(new Runnable() {
+            @Override
+            public void run() {
+                map.clear();
+            }
+        });
+
+    }
+
     public void getTweetsByAddress(final double latitude, final double longitude){
         Thread thread = new Thread() {
             @Override
             public void run() {
                 try{
 
-                    //mMap.clear();
+                    clearMap(mMap);
 
                     final TweetDAO tweetDAO = new TweetDAO(MainActivity.this);
                     final TweetInfoURLDAO tweetInfoURLDAO = new TweetInfoURLDAO(MainActivity.this);
